@@ -1142,12 +1142,13 @@ function validate(fields) {
 
 // SAVE IMAC
 function saveIMac() {
-  const required = ['i-data','i-pratica','i-tecnico','i-asset-fleet2','i-serial',
-    'i-codice-elem','i-l3','i-l2','i-building','i-piano','i-reparto',
-    'i-stanza','i-uos','i-modalita','i-status','i-installed','i-assegnatario','i-resp-gest'];
+  const required = ['i-data','i-pratica','i-tecnico','i-asset-fleet2',
+    'i-building','i-piano','i-reparto',
+    'i-stanza','i-uos','i-modalita','i-status','i-assegnatario','i-resp-gest'];
 
   const valid = required.every(id => {
     const el = document.getElementById(id);
+    if (!el) return true;
     const errId = 'err-' + id.replace('i-','');
     const err = document.getElementById(errId);
     if (!el.value.trim()) {
