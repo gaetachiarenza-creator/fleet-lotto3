@@ -717,17 +717,22 @@
       </div>
 
       <!-- CONSUMABILI SOSTITUITI -->
-      <div class="form-section-title">Consumabile Sostituito <span class="opt">opzionale</span></div>
-      <div class="form-grid two">
+      <div class="form-section-title">Consumabile Sostituito <span class="req">*</span></div>
+      <div class="form-grid">
         <div class="form-group">
-          <label>Codice Consumabile</label>
-          <select id="t-codice-consumabile">
-            <option value="">Prima seleziona il modello...</option>
-          </select>
+          <label>Codice Consumabile <span class="req">*</span></label>
+          <input type="text" id="t-codice-consumabile" class="required-field" placeholder="es. W1331X" list="lista-codici-toner">
+          <datalist id="lista-codici-toner"></datalist>
+          <div class="error-msg" id="err-t-codice-consumabile"></div>
         </div>
         <div class="form-group">
-          <label>Descrizione</label>
-          <input type="text" id="t-desc-consumabile" placeholder="Auto dal codice..." readonly style="background:var(--surface);color:var(--text2)">
+          <label>Descrizione <span class="opt">auto dal modello</span></label>
+          <input type="text" id="t-desc-consumabile" placeholder="es. Toner Nero">
+        </div>
+        <div class="form-group">
+          <label>Quantità <span class="req">*</span></label>
+          <input type="number" id="t-quantita" class="required-field" placeholder="1" min="1" value="1">
+          <div class="error-msg" id="err-t-quantita"></div>
         </div>
       </div>
 
@@ -823,7 +828,7 @@
               <th>Asset ID</th><th>Seriale</th><th>Cod. Elem.</th>
               <th>B/N A4</th><th>B/N A3</th><th>Colori A4</th><th>Colori A3</th>
               <th>Cambio K</th><th>Cambio C</th><th>Cambio Y</th><th>Cambio M</th>
-              <th>Sede</th><th>Azioni</th>
+              <th>Codice Toner</th><th>Qtà</th><th>Sede</th><th>Azioni</th>
             </tr>
           </thead>
           <tbody id="tbody-toner">
@@ -1188,7 +1193,7 @@ function saveIMac() {
 // SAVE TONER
 function saveToner() {
   // Campi sempre obbligatori
-  const alwaysRequired = ['t-asset-fleet2', 't-bn-a4', 't-toner-k'];
+  const alwaysRequired = ['t-asset-fleet2', 't-bn-a4', 't-toner-k', 't-codice-consumabile', 't-quantita'];
 
   // Campi obbligatori solo se visibili
   const conditionalFields = ['t-serial', 't-bn-a3', 't-col-a4', 't-col-a3', 't-toner-c', 't-toner-y', 't-toner-m'];
@@ -1224,6 +1229,7 @@ function saveToner() {
     modello_stampante: document.getElementById('t-modello-stampante')?.value || '',
     codice_consumabile: document.getElementById('t-codice-consumabile')?.value || '',
     desc_consumabile: document.getElementById('t-desc-consumabile')?.value || '',
+    quantita: parseInt(document.getElementById('t-quantita')?.value) || 1,
     bn_a4: parseInt(document.getElementById('t-bn-a4')?.value) || null,
     bn_a3: parseInt(document.getElementById('t-bn-a3')?.value) || null,
     col_a4: parseInt(document.getElementById('t-col-a4')?.value) || null,
@@ -1325,7 +1331,7 @@ function renderToner(data) {
   document.getElementById('stat-toner-printers').textContent = printers.size;
 
   if (!rows || rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="13"><div class="empty-state"><div class="empty-icon">🖨️</div><div class="empty-text">Nessuna rilevazione toner</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="15"><div class="empty-state"><div class="empty-icon">🖨️</div><div class="empty-text">Nessuna rilevazione toner</div></div></td></tr>`;
     return;
   }
 
@@ -1341,6 +1347,8 @@ function renderToner(data) {
     <td class="mono" style="font-size:11px">${r.toner_c || '—'}</td>
     <td class="mono" style="font-size:11px">${r.toner_y || '—'}</td>
     <td class="mono" style="font-size:11px">${r.toner_m || '—'}</td>
+    <td class="mono">${r.codice_consumabile || '—'}</td>
+    <td class="mono">${r.quantita || '1'}</td>
     <td style="font-size:11px;max-width:120px">${r.l2_sede || '—'}</td>
     <td>
       <div style="display:flex;gap:4px">
@@ -1589,25 +1597,30 @@ const catalogoToner = {
 };
 
 function updateCodiciToner(modello) {
-  const sel = document.getElementById('t-codice-consumabile');
+  const datalist = document.getElementById('lista-codici-toner');
+  const codiceEl = document.getElementById('t-codice-consumabile');
   const descEl = document.getElementById('t-desc-consumabile');
-  sel.innerHTML = '<option value="">Seleziona consumabile...</option>';
-  descEl.value = '';
+  
+  if (datalist) datalist.innerHTML = '';
+  if (descEl) descEl.value = '';
 
   if (!modello || !catalogoToner[modello]) return;
 
+  // Popola datalist con i codici del modello selezionato
   catalogoToner[modello].forEach(t => {
     const opt = document.createElement('option');
     opt.value = t.codice;
-    opt.textContent = `${t.codice} — ${t.desc}`;
-    opt.dataset.desc = t.desc;
-    sel.appendChild(opt);
+    opt.label = t.desc;
+    datalist.appendChild(opt);
   });
 
-  sel.onchange = function() {
-    const opt = sel.options[sel.selectedIndex];
-    descEl.value = opt ? (opt.dataset.desc || '') : '';
-  };
+  // Quando cambia il codice, aggiorna la descrizione
+  if (codiceEl) {
+    codiceEl.oninput = function() {
+      const found = catalogoToner[modello]?.find(t => t.codice === codiceEl.value);
+      if (descEl) descEl.value = found ? found.desc : '';
+    };
+  }
 }
 
 // TECNICI PER ENTE
