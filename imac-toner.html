@@ -1237,7 +1237,7 @@ function updateTonerFields(codice) {
 async function loadBuildings() {
   const sede = document.getElementById('i-sede')?.value;
   if (!sede) return;
-  const resp = await sbGet(`asset?select=building&tipo_sede=eq.${encodeURIComponent(sede)}&not.is.building.null&limit=1000`);
+  const resp = await sbGet(`asset?select=building&tipo_sede=eq.${encodeURIComponent(sede)}&building=not.is.null&limit=1000`);
   const valori = [...new Set((resp || []).map(r => r.building).filter(Boolean))].sort();
   const dl = document.getElementById('list-building');
   if (dl) dl.innerHTML = valori.map(v => `<option value="${v}">`).join('');
@@ -1247,7 +1247,7 @@ async function loadPiani() {
   const sede = document.getElementById('i-sede')?.value;
   const building = document.getElementById('i-building')?.value;
   if (!sede) return;
-  let url = `asset?select=piano&tipo_sede=eq.${encodeURIComponent(sede)}&not.is.piano.null&limit=1000`;
+  let url = `asset?select=piano&tipo_sede=eq.${encodeURIComponent(sede)}&piano=not.is.null&limit=1000`;
   if (building) url += `&building=eq.${encodeURIComponent(building)}`;
   const resp = await sbGet(url);
   const valori = [...new Set((resp || []).map(r => r.piano).filter(Boolean))].sort();
@@ -1259,7 +1259,7 @@ async function loadReparti() {
   const sede = document.getElementById('i-sede')?.value;
   const piano = document.getElementById('i-piano')?.value;
   if (!sede) return;
-  let url = `asset?select=servizio_uo&tipo_sede=eq.${encodeURIComponent(sede)}&not.is.servizio_uo.null&limit=1000`;
+  let url = `asset?select=servizio_uo&tipo_sede=eq.${encodeURIComponent(sede)}&servizio_uo=not.is.null&limit=1000`;
   if (piano) url += `&piano=eq.${encodeURIComponent(piano)}`;
   const resp = await sbGet(url);
   const valori = [...new Set((resp || []).map(r => r.servizio_uo).filter(Boolean))].sort();
