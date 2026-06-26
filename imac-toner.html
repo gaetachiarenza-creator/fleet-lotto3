@@ -452,17 +452,20 @@
         </div>
         <div class="form-group">
           <label>Building/Padiglione <span class="req">*</span></label>
-          <input type="text" id="i-building" class="required-field" placeholder="es. Territorio">
+          <input type="text" id="i-building" class="required-field" placeholder="es. Territorio" list="list-building" oninput="loadPiani()">
+          <datalist id="list-building"></datalist>
           <div class="error-msg" id="err-i-building"></div>
         </div>
         <div class="form-group">
           <label>Piano <span class="req">*</span></label>
-          <input type="text" id="i-piano" class="required-field" placeholder="es. P00">
+          <input type="text" id="i-piano" class="required-field" placeholder="es. P00" list="list-piano" oninput="loadReparti()">
+          <datalist id="list-piano"></datalist>
           <div class="error-msg" id="err-i-piano"></div>
         </div>
         <div class="form-group">
           <label>Reparto <span class="req">*</span></label>
-          <input type="text" id="i-reparto" class="required-field" placeholder="es. ADI">
+          <input type="text" id="i-reparto" class="required-field" placeholder="es. ADI" list="list-reparto">
+          <datalist id="list-reparto"></datalist>
           <div class="error-msg" id="err-i-reparto"></div>
         </div>
         <div class="form-group">
@@ -1186,6 +1189,9 @@ function fillFromAsset(a, type) {
       enteEl.value = a.ente_id;
     }
   }
+
+  // Carica suggerimenti building/piano/reparto per la sede
+  if (type === 'imac') setTimeout(() => loadBuildings(), 300);
 }
 
 function capitalize(s) {
@@ -1226,6 +1232,46 @@ function updateTonerFields(codice) {
     if (grp) grp.style.display = hasA3 ? 'flex' : 'none';
   });
 }
+
+// AUTOCOMPLETE BUILDING/PIANO/REPARTO
+async function loadBuildings() {
+  const sede = document.getElementById('i-sede')?.value;
+  if (!sede) return;
+  const resp = await sbGet(`asset?select=building&tipo_sede=eq.${encodeURIComponent(sede)}&not.is.building.null&limit=1000`);
+  const valori = [...new Set((resp || []).map(r => r.building).filter(Boolean))].sort();
+  const dl = document.getElementById('list-building');
+  if (dl) dl.innerHTML = valori.map(v => `<option value="${v}">`).join('');
+}
+
+async function loadPiani() {
+  const sede = document.getElementById('i-sede')?.value;
+  const building = document.getElementById('i-building')?.value;
+  if (!sede) return;
+  let url = `asset?select=piano&tipo_sede=eq.${encodeURIComponent(sede)}&not.is.piano.null&limit=1000`;
+  if (building) url += `&building=eq.${encodeURIComponent(building)}`;
+  const resp = await sbGet(url);
+  const valori = [...new Set((resp || []).map(r => r.piano).filter(Boolean))].sort();
+  const dl = document.getElementById('list-piano');
+  if (dl) dl.innerHTML = valori.map(v => `<option value="${v}">`).join('');
+}
+
+async function loadReparti() {
+  const sede = document.getElementById('i-sede')?.value;
+  const piano = document.getElementById('i-piano')?.value;
+  if (!sede) return;
+  let url = `asset?select=servizio_uo&tipo_sede=eq.${encodeURIComponent(sede)}&not.is.servizio_uo.null&limit=1000`;
+  if (piano) url += `&piano=eq.${encodeURIComponent(piano)}`;
+  const resp = await sbGet(url);
+  const valori = [...new Set((resp || []).map(r => r.servizio_uo).filter(Boolean))].sort();
+  const dl = document.getElementById('list-reparto');
+  if (dl) dl.innerHTML = valori.map(v => `<option value="${v}">`).join('');
+}
+
+// Carica buildings quando cambia sede
+document.addEventListener('DOMContentLoaded', () => {
+  const sedeEl = document.getElementById('i-sede');
+  if (sedeEl) sedeEl.addEventListener('change', loadBuildings);
+});
 
 // MAGAZZINO
 var currentEnteMagazzino = '';
