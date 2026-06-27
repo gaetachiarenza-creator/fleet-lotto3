@@ -2204,7 +2204,6 @@ function selectEnte(type, ente, btn) {
 
   if (type === 'imac') {
     currentEnteImac = ente;
-    updateTecnicoSelect(ente);
     loadImac(ente);
   } else {
     currentEnteToner = ente;
@@ -2215,15 +2214,12 @@ function selectEnte(type, ente, btn) {
 function showForm(type) {
   document.getElementById(`form-${type}`).style.display = 'block';
   document.getElementById(`form-${type}`).scrollIntoView({ behavior: 'smooth' });
-  if (type === 'imac') {
+  if (type === 'imac' && currentEnteImac) {
     setTimeout(() => {
-      updateTecnicoSelect(currentEnteImac);
-      if (currentEnteImac) {
-        const enteEl = document.getElementById('i-ente');
-        if (enteEl) {
-          const opt = Array.from(enteEl.options).find(o => o.text === currentEnteImac);
-          if (opt) { enteEl.value = opt.value; onEnteChange('imac'); }
-        }
+      const enteEl = document.getElementById('i-ente');
+      if (enteEl) {
+        const opt = Array.from(enteEl.options).find(o => o.text === currentEnteImac);
+        if (opt) { enteEl.value = opt.value; onEnteChange('imac'); }
       }
     }, 100);
   }
