@@ -358,7 +358,7 @@
             <option value="Installazione">Installazione</option>
             <option value="Spostamento">Spostamento</option>
             <option value="Aggiunta">Aggiunta</option>
-            <option value="Cambio">Cambio</option>
+            <option value="Sostituzione">Sostituzione</option>
             <option value="Dismissione">Dismissione</option>
             <option value="Rientro">Rientro</option>
           </select>
@@ -368,23 +368,6 @@
           <label>Tecnico <span class="req">*</span></label>
           <select id="i-tecnico" class="required-field">
             <option value="">Seleziona...</option>
-            <optgroup label="ASST Brianza">
-              <option>F.Arrighini</option><option>F.Naso</option><option>A.Francavilla</option>
-              <option>C.Fontana</option><option>C.Lanzaro</option><option>D.Nicotra</option><option>F.Punzi</option>
-            </optgroup>
-            <optgroup label="ASST Lecco">
-              <option>F.Venturini</option><option>J.Machuca</option><option>F.Guccione</option>
-              <option>F.Noseda</option><option>G.DePedrina</option><option>M.Anghileri</option>
-              <option>M.Bernasconi</option><option>S.Minola</option>
-            </optgroup>
-            <optgroup label="ASST Monza">
-              <option>G.Pontillo</option><option>M.Custureri</option><option>E.Turati</option>
-              <option>G.Vit</option><option>L.Lacamera</option><option>L.DiGirolamo</option>
-              <option>M.Iannone</option><option>M.Cutolo</option>
-            </optgroup>
-            <optgroup label="ATS Brianza">
-              <option>M.Mansi</option><option>C.Rossi</option><option>D.Danzi</option>
-            </optgroup>
           </select>
           <div class="error-msg" id="err-i-tecnico"></div>
         </div>
@@ -1489,7 +1472,7 @@ async function exportMagazzino() {
 // INIT
 loadEntiSedi();
 loadImac();
-// Popola menu toner al caricamento
+updateTecnicoSelect('');
 setTimeout(() => popolaMenuToner(catalogoPiatto), 500);
 
 // Navigation
@@ -2206,7 +2189,7 @@ function updateTecnicoSelect(ente) {
   if (!sel) return;
   const tecnici = ente && tecniciPerEnte[ente] ? tecniciPerEnte[ente] : Object.values(tecniciPerEnte).flat();
   sel.innerHTML = '<option value="">Seleziona...</option>' +
-    [...new Set(tecnici)].map(t => `<option>${t}</option>`).join('');
+    [...new Set(tecnici)].sort().map(t => `<option>${t}</option>`).join('');
 }
 
 // Salva ente nel record IMAC
