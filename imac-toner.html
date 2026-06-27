@@ -1495,12 +1495,6 @@ function toast(msg, type='success') {
 }
 
 // Form show/hide
-function showForm(type) {
-  document.getElementById(`form-${type}`).style.display = 'block';
-  document.getElementById(`form-${type}`).scrollIntoView({ behavior: 'smooth' });
-  if (type === 'imac') updateTecnicoSelect(currentEnteImac);
-}
-
 function hideForm(type) {
   document.getElementById(`form-${type}`).style.display = 'none';
   resetForm(type);
@@ -2169,21 +2163,23 @@ function selectEnte(type, ente, btn) {
     currentEnteImac = ente;
     updateTecnicoSelect(ente);
     loadImac(ente);
-    if (ente) {
-      const enteEl = document.getElementById('i-ente');
-      if (enteEl) {
-        const opt = Array.from(enteEl.options).find(o => o.text === ente);
-        if (opt) { enteEl.value = opt.value; onEnteChange('imac'); }
-      }
-    }
   } else {
     currentEnteToner = ente;
     loadToner(ente);
-    if (ente) {
-      const enteEl = document.getElementById('t-ente');
+  }
+}
+
+function showForm(type) {
+  document.getElementById(`form-${type}`).style.display = 'block';
+  document.getElementById(`form-${type}`).scrollIntoView({ behavior: 'smooth' });
+  if (type === 'imac') {
+    updateTecnicoSelect(currentEnteImac);
+    // Precompila ente nel form
+    if (currentEnteImac) {
+      const enteEl = document.getElementById('i-ente');
       if (enteEl) {
-        const opt = Array.from(enteEl.options).find(o => o.text === ente);
-        if (opt) { enteEl.value = opt.value; }
+        const opt = Array.from(enteEl.options).find(o => o.text === currentEnteImac);
+        if (opt) { enteEl.value = opt.value; onEnteChange('imac'); }
       }
     }
   }
