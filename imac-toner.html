@@ -1513,6 +1513,7 @@ function resetForm(type) {
   form.querySelectorAll('input, select').forEach(el => el.value = '');
   form.querySelectorAll('.error-msg').forEach(el => el.textContent = '');
   form.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+  if (type === 'imac') updateTecnicoSelect(currentEnteImac);
 }
 
 // Validate
