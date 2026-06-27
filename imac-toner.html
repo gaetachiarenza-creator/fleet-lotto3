@@ -1550,7 +1550,7 @@ function hideForm(type) {
 function resetForm(type) {
   const form = document.getElementById(`form-${type}`);
   form.querySelectorAll('input').forEach(el => el.value = '');
-  form.querySelectorAll('select').forEach(el => { el.value = ''; });
+  form.querySelectorAll('select').forEach(el => { if (el.id !== 'i-tecnico') el.value = ''; });
   form.querySelectorAll('.error-msg').forEach(el => el.textContent = '');
   form.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
 }
@@ -2203,6 +2203,7 @@ function selectEnte(type, ente, btn) {
 
   if (type === 'imac') {
     currentEnteImac = ente;
+    updateTecnicoSelect(ente);
     loadImac(ente);
   } else {
     currentEnteToner = ente;
