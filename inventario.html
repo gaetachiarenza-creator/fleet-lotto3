@@ -233,6 +233,7 @@
 
   .empty { text-align:center; padding:20px; color:var(--text3); font-size:12px; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -240,6 +241,8 @@
   <div class="logo">INVENTARIO <span>— LOTTO 3</span></div>
   <div class="search-wrap">
     <input type="text" class="search-box" id="search-global" placeholder="Cerca tag, seriale, tipo..." oninput="searchAssets(this.value)">
+    <button class="btn btn-ghost" onclick="openNormalizza()">⚙ Normalizza dati</button>
+    <button class="btn btn-ghost" onclick="exportCMDB()">↓ Export CMDB</button>
     <button class="btn btn-ghost" onclick="collapseAll()">↑ Chiudi tutto</button>
     <button class="btn btn-ghost" onclick="expandAll()">↓ Espandi tutto</button>
   </div>
@@ -446,7 +449,178 @@ function searchAssets(q) {
   // TODO: search globale
 }
 
+// NORMALIZZA DATI
+function openNormalizza() {
+  document.getElementById('normalizza-overlay').style.display = 'flex';
+  // Popola select enti
+  const sel = document.getElementById('norm-ente');
+  sel.innerHTML = '<option value="">Tutti</option>' + entiData.map(e => `<option value="${e.id}">${e.nome}</option>`).join('');
+  loadValoriDistinti();
+}
+
+function closeNormalizza() {
+  document.getElementById('normalizza-overlay').style.display = 'none';
+}
+
+async function loadValoriDistinti() {
+  const campo = document.getElementById('norm-campo').value;
+  const enteId = document.getElementById('norm-ente').value;
+  const cont = document.getElementById('norm-valori');
+  cont.innerHTML = '<div class="loading">⟳ Caricamento valori...</div>';
+
+  // Carica tutti gli asset con quel campo
+  let allAssets = [];
+  let offset = 0;
+  while (true) {
+    let url = `asset?select=${campo}&limit=1000&offset=${offset}`;
+    if (enteId) url += `&ente_id=eq.${enteId}`;
+    const batch = await sbGet(url);
+    if (!batch || batch.length === 0) break;
+    allAssets = allAssets.concat(batch);
+    offset += 1000;
+    if (batch.length < 1000) break;
+  }
+
+  // Conta valori distinti
+  const conteggio = {};
+  allAssets.forEach(a => {
+    const val = a[campo] || '(vuoto)';
+    conteggio[val] = (conteggio[val] || 0) + 1;
+  });
+
+  const valori = Object.entries(conteggio).sort((a, b) => b[1] - a[1]);
+  document.getElementById('norm-info').textContent = `${valori.length} valori distinti trovati`;
+
+  cont.innerHTML = valori.map(([val, count]) => `
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px">
+      <input type="checkbox" class="norm-check" value="${val.replace(/"/g, '&quot;')}">
+      <span style="flex:1;color:var(--text)">${val}</span>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--surface2);padding:1px 6px;border-radius:3px">${count}</span>
+    </label>
+  `).join('');
+}
+
+async function applicaNormalizzazione() {
+  const campo = document.getElementById('norm-campo').value;
+  const enteId = document.getElementById('norm-ente').value;
+  const nuovoValore = document.getElementById('norm-nuovo-valore').value.trim();
+
+  if (!nuovoValore) { alert('Inserisci il nuovo valore'); return; }
+
+  const selezionati = Array.from(document.querySelectorAll('.norm-check:checked')).map(c => c.value);
+  if (selezionati.length === 0) { alert('Seleziona almeno un valore'); return; }
+
+  if (!confirm(`Sostituire ${selezionati.length} valori con "${nuovoValore}"?`)) return;
+
+  document.getElementById('norm-info').textContent = '⟳ Aggiornamento in corso...';
+
+  // Per ogni valore selezionato, aggiorna tutti gli asset
+  let totale = 0;
+  for (const vecchio of selezionati) {
+    let url = `${SUPABASE_URL}/rest/v1/asset?${campo}=eq.${encodeURIComponent(vecchio)}`;
+    if (enteId) url += `&ente_id=eq.${enteId}`;
+    await fetch(url, {
+      method: 'PATCH',
+      headers: {...SB_HEADERS, 'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
+      body: JSON.stringify({ [campo]: nuovoValore })
+    });
+    totale++;
+  }
+
+  document.getElementById('norm-nuovo-valore').value = '';
+  await loadValoriDistinti();
+  document.getElementById('norm-info').textContent = `✓ ${totale} valori normalizzati in "${nuovoValore}"`;
+}
+
+// EXPORT CMDB formato Matteo
+async function exportCMDB() {
+  const ente = entiData.find(e => e.id === currentEnteId);
+  if (!ente) { alert('Seleziona un ente'); return; }
+
+  // Carica tutti gli asset dell'ente con tutti i campi
+  let allAssets = [];
+  let offset = 0;
+  while (true) {
+    const batch = await sbGet(`asset?select=*&ente_id=eq.${currentEnteId}&limit=1000&offset=${offset}`);
+    if (!batch || batch.length === 0) break;
+    allAssets = allAssets.concat(batch);
+    offset += 1000;
+    if (batch.length < 1000) break;
+  }
+
+  if (!allAssets.length) { alert('Nessun asset da esportare'); return; }
+
+  // Mappa i campi nel formato CMDB di Matteo (colonne in ordine)
+  const rows = allAssets.map(a => ({
+    'Data': '',
+    'Pratica': '',
+    'Tecnico': '',
+    'AssetID_Fleet2': a.tag_asset || '',
+    'SerialNumber': a.numero_serie || '',
+    'CodiceElemento1': a.codice_elemento || '',
+    'L3_Indirizzo': a.l2_sede || '',
+    'L2_Sede': a.tipo_sede || '',
+    'L4_BuildingOrPadiglione': a.building || '',
+    'L6_Piano': a.piano || '',
+    'L5_Reparto': a.servizio_uo || '',
+    'L7_Stanza': a.stanza || '',
+    'UOS': a.servizio_uo || '',
+    'ModalitaUtilizzo': a.modalita_utilizzo || '',
+    'Status': a.status || '',
+    'Installed': a.data_installazione || '',
+    'Data Dismissione': '',
+    'Assegnatario': a.user_assegnatario || '',
+    'Proprieta': a.proprieta || '',
+    'ResponsabileGestione': a.contraente_gestione || '',
+    'HostName': '',
+    'IPAddress': '',
+    'PdL': a.is_pdl || '',
+    'DataInizioLocazione': a.inizio_locazione || '',
+    'DataFineLocazione': a.fine_locazione || ''
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Asset');
+  XLSX.writeFile(wb, `CMDB_${ente.nome.replace(/\s/g, '_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
 init();
 </script>
+<!-- MODALE NORMALIZZA -->
+<div id="normalizza-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:90%;max-width:700px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:var(--mono);font-size:14px;font-weight:600">Normalizza Dati</div>
+      <button class="btn btn-ghost" onclick="closeNormalizza()">✕ Chiudi</button>
+    </div>
+    <div style="padding:20px;overflow-y:auto">
+      <div style="display:flex;gap:12px;margin-bottom:16px;align-items:center">
+        <label style="font-size:12px;color:var(--text2)">Campo:</label>
+        <select id="norm-campo" onchange="loadValoriDistinti()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-size:13px">
+          <option value="piano">Piano</option>
+          <option value="building">Building/Padiglione</option>
+          <option value="servizio_uo">Reparto</option>
+        </select>
+        <label style="font-size:12px;color:var(--text2)">Ente:</label>
+        <select id="norm-ente" onchange="loadValoriDistinti()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-size:13px">
+          <option value="">Tutti</option>
+        </select>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">
+        <input type="text" id="norm-nuovo-valore" placeholder="Nuovo valore..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px">
+        <button class="btn" style="background:var(--accent);color:white" onclick="applicaNormalizzazione()">Applica ai selezionati</button>
+      </div>
+
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px" id="norm-info">Seleziona i valori da unificare</div>
+
+      <div id="norm-valori" style="max-height:350px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">
+        <div class="loading">Seleziona un campo</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
