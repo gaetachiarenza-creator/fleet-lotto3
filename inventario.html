@@ -466,12 +466,13 @@ let normLoadingId = 0;
 async function loadValoriDistinti() {
   const campo = document.getElementById('norm-campo').value;
   const enteId = document.getElementById('norm-ente').value;
+  const statusFilter = document.getElementById('norm-status').value;
   const cont = document.getElementById('norm-valori');
   cont.innerHTML = '<div class="loading">⟳ Caricamento valori...</div>';
 
   // ID univoco per questa chiamata — se ne parte un'altra, questa viene annullata
   const myId = ++normLoadingId;
-  console.log(`[Normalizza] Campo: ${campo}, EnteID: "${enteId}" (${enteId ? 'filtrato' : 'TUTTI'})`);
+  console.log(`[Normalizza] Campo: ${campo}, EnteID: "${enteId}", Status: "${statusFilter}"`);
 
   // Carica tutti gli asset con quel campo (ordinati per id per paginazione stabile)
   let allAssets = [];
@@ -479,8 +480,9 @@ async function loadValoriDistinti() {
   while (true) {
     let url = `asset?select=id,${campo}&order=id.asc&limit=1000&offset=${offset}`;
     if (enteId) url += `&ente_id=eq.${enteId}`;
+    if (statusFilter === 'attivi') url += `&status=eq.attivo`;
     const batch = await sbGet(url);
-    if (myId !== normLoadingId) return; // un'altra chiamata è partita, annulla questa
+    if (myId !== normLoadingId) return;
     if (!batch || batch.length === 0) break;
     allAssets = allAssets.concat(batch);
     offset += 1000;
@@ -511,6 +513,7 @@ async function loadValoriDistinti() {
 async function applicaNormalizzazione() {
   const campo = document.getElementById('norm-campo').value;
   const enteId = document.getElementById('norm-ente').value;
+  const statusFilter = document.getElementById('norm-status').value;
   const nuovoValore = document.getElementById('norm-nuovo-valore').value.trim();
 
   if (!nuovoValore) { alert('Inserisci il nuovo valore'); return; }
@@ -532,6 +535,7 @@ async function applicaNormalizzazione() {
       url = `${SUPABASE_URL}/rest/v1/asset?${campo}=eq.${encodeURIComponent(vecchio)}`;
     }
     if (enteId) url += `&ente_id=eq.${enteId}`;
+    if (statusFilter === 'attivi') url += `&status=eq.attivo`;
 
     const resp = await fetch(url, {
       method: 'PATCH',
@@ -568,9 +572,6 @@ async function exportCMDB() {
 
   // Mappa i campi nel formato CMDB di Matteo (colonne in ordine)
   const rows = allAssets.map(a => ({
-    'Data': '',
-    'Pratica': '',
-    'Tecnico': '',
     'AssetID_Fleet2': a.tag_asset || '',
     'SerialNumber': a.numero_serie || '',
     'CodiceElemento1': a.codice_elemento || '',
@@ -621,6 +622,11 @@ init();
         <label style="font-size:12px;color:var(--text2)">Ente:</label>
         <select id="norm-ente" onchange="loadValoriDistinti()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-size:13px">
           <option value="">Tutti</option>
+        </select>
+        <label style="font-size:12px;color:var(--text2)">Status:</label>
+        <select id="norm-status" onchange="loadValoriDistinti()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-size:13px">
+          <option value="">Tutti</option>
+          <option value="attivi">Solo Attivi</option>
         </select>
       </div>
 
