@@ -1602,6 +1602,136 @@ async function exportMagazzino() {
   toast('Export completato!');
 }
 
+// CATALOGO TONER
+const catalogoToner = {
+  'ST KY FS-4200DN': [
+    {codice: '1T02LV0NL0', desc: 'Toner Nero'},
+    {codice: '302LV93045', desc: 'Drum Nero'},
+    {codice: '302LV94270', desc: 'Rullini'},
+  ],
+  'ST KY P3055DN': [
+    {codice: '1T02T60NL1', desc: 'Toner Nero'},
+    {codice: '302T693031', desc: 'Drum Nero'},
+  ],
+  'ST LX MS610DN': [
+    {codice: '50F2U0E', desc: 'Toner Nero'},
+    {codice: '50F0Z00', desc: 'Drum Nero'},
+  ],
+  'ST LX MS415DN': [
+    {codice: '50F2X0E', desc: 'Toner Nero'},
+  ],
+  'ST LX MS810DN': [
+    {codice: '52D2H0E', desc: 'Toner Nero'},
+    {codice: '52D0Z00', desc: 'Drum Nero'},
+  ],
+  'ST LX MS911DE': [
+    {codice: '54G0H00', desc: 'Toner Nero'},
+    {codice: '54G0P00', desc: 'Drum Nero'},
+    {codice: '54G0W00', desc: 'Vaschetta'},
+  ],
+  'ST LX MS431DN': [
+    {codice: '55B2X0E', desc: 'Toner Nero'},
+    {codice: '55B0ZA0', desc: 'Drum Nero'},
+  ],
+  'ST LX MS321ADN': [
+    {codice: '56F2H0E', desc: 'Toner Nero'},
+  ],
+  'ST LX MS621DN': [
+    {codice: '56F2U0E', desc: 'Toner Nero'},
+  ],
+  'ST LX MS421DN': [
+    {codice: '56F2X0E', desc: 'Toner Nero'},
+  ],
+  'ST LX MS321ADN/MS621/MS421': [
+    {codice: '56F0Z00', desc: 'Drum Nero'},
+  ],
+  'ST LX MS821DN': [
+    {codice: '58D2H0E', desc: 'Toner Nero'},
+    {codice: '58D0Z00', desc: 'Drum Nero'},
+  ],
+  'ST LX MS721ADHE': [
+    {codice: '58D2X0E', desc: 'Toner Nero'},
+  ],
+  'ST LX MX310DN': [
+    {codice: '60F2H0E', desc: 'Toner Nero'},
+  ],
+  'ST LX MX711DE': [
+    {codice: '62D2X0E', desc: 'Toner Nero'},
+  ],
+  'ST LX MX911DE': [
+    {codice: '64G0H00', desc: 'Toner Nero'},
+  ],
+  'ST HP 477DN': [
+    {codice: 'L0S07AE', desc: 'Toner Nero'},
+    {codice: 'F6T81AE', desc: 'Toner Ciano'},
+    {codice: 'F6T82AE', desc: 'Toner Magenta'},
+    {codice: 'F6T83AE', desc: 'Toner Giallo'},
+    {codice: 'B5L09A', desc: 'Vaschetta'},
+  ],
+  'ST SS SL-M3820': [
+    {codice: 'SU885A', desc: 'Toner Nero'},
+  ],
+  'ST SS ML-3310': [
+    {codice: 'SU951A', desc: 'Toner Nero'},
+  ],
+  'ST HP M408DN': [
+    {codice: 'W1331XH', desc: 'Toner Nero'},
+    {codice: 'W1332AH', desc: 'Drum'},
+  ],
+  'ST HP 4302FDW': [
+    {codice: 'W2150XC', desc: 'Toner Nero'},
+    {codice: 'W2151XC', desc: 'Toner Ciano'},
+    {codice: 'W2152XC', desc: 'Toner Giallo'},
+    {codice: 'W2153XC', desc: 'Toner Magenta'},
+  ],
+  'ST HP 62655DN': [
+    {codice: 'W9004MC', desc: 'Toner Nero'},
+  ],
+  'ST HP E72535DN': [
+    {codice: 'W9005MC', desc: 'Toner Nero'},
+    {codice: 'W9006MC', desc: 'Drum Nero'},
+    {codice: 'W9007MC', desc: 'Vaschetta'},
+  ],
+  'ST HP E87640DU': [
+    {codice: 'W9050MC', desc: 'Toner Nero'},
+    {codice: 'W9051MC', desc: 'Toner Ciano'},
+    {codice: 'W9052MC', desc: 'Toner Giallo'},
+    {codice: 'W9053MC', desc: 'Toner Magenta'},
+    {codice: 'W9054MC', desc: 'Drum Nero'},
+    {codice: 'W9055MC', desc: 'Drum Colori'},
+    {codice: 'W9058MC', desc: 'Vaschetta'},
+  ],
+  'ST HP E731DN': [
+    {codice: 'W9065MC', desc: 'Toner Nero'},
+    {codice: 'W9066MC', desc: 'Drum Nero'},
+    {codice: '6SB84A', desc: 'Vaschetta'},
+  ],
+  'ST HP 877DN': [
+    {codice: 'W9170MC', desc: 'Toner Nero'},
+    {codice: 'W9171MC', desc: 'Toner Ciano'},
+    {codice: 'W9172MC', desc: 'Toner Giallo'},
+    {codice: 'W9173MC', desc: 'Toner Magenta'},
+    {codice: 'W9077MC', desc: 'Drum Nero'},
+    {codice: 'W9078MC', desc: 'Drum Colori'},
+    {codice: '6SB85A', desc: 'Vaschetta'},
+  ],
+};
+
+// Catalogo piatto per menu unificato
+var catalogoPiatto = [];
+Object.entries(catalogoToner).forEach(([modello, toners]) => {
+  toners.forEach(t => {
+    catalogoPiatto.push({
+      modello,
+      codice: t.codice,
+      desc: t.desc,
+      label: `${modello} — ${t.codice} — ${t.desc}`,
+      value: `${t.codice}||${t.desc}||${modello}`
+    });
+  });
+});
+
+
 // INIT
 loadEntiSedi();
 loadImac();
@@ -2060,135 +2190,6 @@ function exportCSV(type) {
   a.click();
   toast(`Export ${type.toUpperCase()} completato — ${data.length} righe`);
 }
-
-// CATALOGO TONER
-const catalogoToner = {
-  'ST KY FS-4200DN': [
-    {codice: '1T02LV0NL0', desc: 'Toner Nero'},
-    {codice: '302LV93045', desc: 'Drum Nero'},
-    {codice: '302LV94270', desc: 'Rullini'},
-  ],
-  'ST KY P3055DN': [
-    {codice: '1T02T60NL1', desc: 'Toner Nero'},
-    {codice: '302T693031', desc: 'Drum Nero'},
-  ],
-  'ST LX MS610DN': [
-    {codice: '50F2U0E', desc: 'Toner Nero'},
-    {codice: '50F0Z00', desc: 'Drum Nero'},
-  ],
-  'ST LX MS415DN': [
-    {codice: '50F2X0E', desc: 'Toner Nero'},
-  ],
-  'ST LX MS810DN': [
-    {codice: '52D2H0E', desc: 'Toner Nero'},
-    {codice: '52D0Z00', desc: 'Drum Nero'},
-  ],
-  'ST LX MS911DE': [
-    {codice: '54G0H00', desc: 'Toner Nero'},
-    {codice: '54G0P00', desc: 'Drum Nero'},
-    {codice: '54G0W00', desc: 'Vaschetta'},
-  ],
-  'ST LX MS431DN': [
-    {codice: '55B2X0E', desc: 'Toner Nero'},
-    {codice: '55B0ZA0', desc: 'Drum Nero'},
-  ],
-  'ST LX MS321ADN': [
-    {codice: '56F2H0E', desc: 'Toner Nero'},
-  ],
-  'ST LX MS621DN': [
-    {codice: '56F2U0E', desc: 'Toner Nero'},
-  ],
-  'ST LX MS421DN': [
-    {codice: '56F2X0E', desc: 'Toner Nero'},
-  ],
-  'ST LX MS321ADN/MS621/MS421': [
-    {codice: '56F0Z00', desc: 'Drum Nero'},
-  ],
-  'ST LX MS821DN': [
-    {codice: '58D2H0E', desc: 'Toner Nero'},
-    {codice: '58D0Z00', desc: 'Drum Nero'},
-  ],
-  'ST LX MS721ADHE': [
-    {codice: '58D2X0E', desc: 'Toner Nero'},
-  ],
-  'ST LX MX310DN': [
-    {codice: '60F2H0E', desc: 'Toner Nero'},
-  ],
-  'ST LX MX711DE': [
-    {codice: '62D2X0E', desc: 'Toner Nero'},
-  ],
-  'ST LX MX911DE': [
-    {codice: '64G0H00', desc: 'Toner Nero'},
-  ],
-  'ST HP 477DN': [
-    {codice: 'L0S07AE', desc: 'Toner Nero'},
-    {codice: 'F6T81AE', desc: 'Toner Ciano'},
-    {codice: 'F6T82AE', desc: 'Toner Magenta'},
-    {codice: 'F6T83AE', desc: 'Toner Giallo'},
-    {codice: 'B5L09A', desc: 'Vaschetta'},
-  ],
-  'ST SS SL-M3820': [
-    {codice: 'SU885A', desc: 'Toner Nero'},
-  ],
-  'ST SS ML-3310': [
-    {codice: 'SU951A', desc: 'Toner Nero'},
-  ],
-  'ST HP M408DN': [
-    {codice: 'W1331XH', desc: 'Toner Nero'},
-    {codice: 'W1332AH', desc: 'Drum'},
-  ],
-  'ST HP 4302FDW': [
-    {codice: 'W2150XC', desc: 'Toner Nero'},
-    {codice: 'W2151XC', desc: 'Toner Ciano'},
-    {codice: 'W2152XC', desc: 'Toner Giallo'},
-    {codice: 'W2153XC', desc: 'Toner Magenta'},
-  ],
-  'ST HP 62655DN': [
-    {codice: 'W9004MC', desc: 'Toner Nero'},
-  ],
-  'ST HP E72535DN': [
-    {codice: 'W9005MC', desc: 'Toner Nero'},
-    {codice: 'W9006MC', desc: 'Drum Nero'},
-    {codice: 'W9007MC', desc: 'Vaschetta'},
-  ],
-  'ST HP E87640DU': [
-    {codice: 'W9050MC', desc: 'Toner Nero'},
-    {codice: 'W9051MC', desc: 'Toner Ciano'},
-    {codice: 'W9052MC', desc: 'Toner Giallo'},
-    {codice: 'W9053MC', desc: 'Toner Magenta'},
-    {codice: 'W9054MC', desc: 'Drum Nero'},
-    {codice: 'W9055MC', desc: 'Drum Colori'},
-    {codice: 'W9058MC', desc: 'Vaschetta'},
-  ],
-  'ST HP E731DN': [
-    {codice: 'W9065MC', desc: 'Toner Nero'},
-    {codice: 'W9066MC', desc: 'Drum Nero'},
-    {codice: '6SB84A', desc: 'Vaschetta'},
-  ],
-  'ST HP 877DN': [
-    {codice: 'W9170MC', desc: 'Toner Nero'},
-    {codice: 'W9171MC', desc: 'Toner Ciano'},
-    {codice: 'W9172MC', desc: 'Toner Giallo'},
-    {codice: 'W9173MC', desc: 'Toner Magenta'},
-    {codice: 'W9077MC', desc: 'Drum Nero'},
-    {codice: 'W9078MC', desc: 'Drum Colori'},
-    {codice: '6SB85A', desc: 'Vaschetta'},
-  ],
-};
-
-// Catalogo piatto per menu unificato
-var catalogoPiatto = [];
-Object.entries(catalogoToner).forEach(([modello, toners]) => {
-  toners.forEach(t => {
-    catalogoPiatto.push({
-      modello,
-      codice: t.codice,
-      desc: t.desc,
-      label: `${modello} — ${t.codice} — ${t.desc}`,
-      value: `${t.codice}||${t.desc}||${modello}`
-    });
-  });
-});
 
 function popolaMenuToner(lista) {
   const sel = document.getElementById('t-codice-consumabile');
