@@ -468,11 +468,11 @@ async function loadValoriDistinti() {
   const cont = document.getElementById('norm-valori');
   cont.innerHTML = '<div class="loading">⟳ Caricamento valori...</div>';
 
-  // Carica tutti gli asset con quel campo
+  // Carica tutti gli asset con quel campo (ordinati per id per paginazione stabile)
   let allAssets = [];
   let offset = 0;
   while (true) {
-    let url = `asset?select=${campo}&limit=1000&offset=${offset}`;
+    let url = `asset?select=id,${campo}&order=id.asc&limit=1000&offset=${offset}`;
     if (enteId) url += `&ente_id=eq.${enteId}`;
     const batch = await sbGet(url);
     if (!batch || batch.length === 0) break;
@@ -514,22 +514,30 @@ async function applicaNormalizzazione() {
 
   document.getElementById('norm-info').textContent = '⟳ Aggiornamento in corso...';
 
-  // Per ogni valore selezionato, aggiorna tutti gli asset
   let totale = 0;
   for (const vecchio of selezionati) {
-    let url = `${SUPABASE_URL}/rest/v1/asset?${campo}=eq.${encodeURIComponent(vecchio)}`;
+    let url;
+    if (vecchio === '(vuoto)') {
+      // Gestisci valori NULL
+      url = `${SUPABASE_URL}/rest/v1/asset?${campo}=is.null`;
+    } else {
+      url = `${SUPABASE_URL}/rest/v1/asset?${campo}=eq.${encodeURIComponent(vecchio)}`;
+    }
     if (enteId) url += `&ente_id=eq.${enteId}`;
-    await fetch(url, {
+
+    const resp = await fetch(url, {
       method: 'PATCH',
-      headers: {...SB_HEADERS, 'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
+      headers: {...SB_HEADERS, 'Content-Type': 'application/json', 'Prefer': 'return=representation,count=exact'},
       body: JSON.stringify({ [campo]: nuovoValore })
     });
-    totale++;
+    const updated = await resp.json();
+    totale += Array.isArray(updated) ? updated.length : 0;
   }
 
   document.getElementById('norm-nuovo-valore').value = '';
+  document.getElementById('norm-info').textContent = `✓ ${totale} record aggiornati. Ricaricamento...`;
+  await new Promise(r => setTimeout(r, 800));
   await loadValoriDistinti();
-  document.getElementById('norm-info').textContent = `✓ ${totale} valori normalizzati in "${nuovoValore}"`;
 }
 
 // EXPORT CMDB formato Matteo
