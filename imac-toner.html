@@ -281,6 +281,7 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -368,52 +369,6 @@
           <label>Tecnico <span class="req">*</span></label>
           <select id="i-tecnico" class="required-field">
             <option value="">Seleziona...</option>
-            <optgroup label="ASST Brianza">
-              <option>F.Arrighini</option><option>F.Naso</option><option>A.Francavilla</option>
-              <option>C.Fontana</option><option>C.Lanzaro</option><option>D.Nicotra</option><option>F.Punzi</option><option>M.Marziotti</option>
-            </optgroup>
-            <optgroup label="ASST Lariana">
-              <option>D.Di Sisto</option><option>M.Arnaboldi</option><option>A.Pantalone</option>
-              <option>A.Chiarello</option><option>L.Bertuletti</option><option>L.Vago</option><option>R.Gaffuri</option><option>G.Chiarenza</option>
-            </optgroup>
-            <optgroup label="ASST Lecco">
-              <option>F.Venturini</option><option>J.Machuca</option><option>F.Guccione</option>
-              <option>F.Noseda</option><option>G.De Pedrina</option><option>M.Anghileri</option>
-              <option>M.Bernasconi</option><option>S.Minola</option><option>A.Aguglia</option>
-            </optgroup>
-            <optgroup label="IRCCS San Gerardo">
-              <option>G.Pontillo</option><option>M.Custureri</option><option>E.Turati</option>
-              <option>G.Vit</option><option>L.Lacamera</option><option>L.DiGirolamo</option>
-              <option>M.Iannone</option><option>M.Cutolo</option><option>S.Cazzaniga</option>
-            </optgroup>
-            <optgroup label="ASST Sette Laghi">
-              <option>M.Maiorano</option><option>A.Mura</option><option>A.Leontino</option>
-              <option>A.Petrocelli</option><option>B.Corrente</option><option>C.Petri</option>
-              <option>E.Baratto</option><option>L.Binaghi</option><option>M.Bettagno</option><option>S.Gangemi</option>
-            </optgroup>
-            <optgroup label="ASST Valcamonica">
-              <option>M.Tedeschi</option><option>M.Polonioli</option><option>J.Fedrighini</option><option>L.Ducoli</option>
-            </optgroup>
-            <optgroup label="ASST Valle Olona">
-              <option>D.Bonomi</option><option>G.Lombardino</option><option>E.Pomaro</option>
-              <option>F.Ferrario</option><option>M.Cattaneo</option><option>P.Besana</option><option>S.Vejuka</option><option>S.Serra</option>
-            </optgroup>
-            <optgroup label="ASST Valtellina e Alto Lario">
-              <option>F.Tonola</option><option>K.Contreras</option><option>A.Orsingher</option>
-              <option>F.Depianto</option><option>K.Mauri</option><option>M.Patisso</option><option>A.Terzi</option>
-            </optgroup>
-            <optgroup label="ATS Brianza">
-              <option>M.Mansi</option><option>C.Rossi</option><option>D.Danzi</option>
-            </optgroup>
-            <optgroup label="ATS Insubria">
-              <option>I.Dervishi</option><option>D.Zambon</option><option>C.Bignotti</option><option>E.Rossi</option><option>G.Patano</option>
-            </optgroup>
-            <optgroup label="ATS Montagna">
-              <option>M.Argenta</option><option>M.Gasparini</option>
-            </optgroup>
-            <optgroup label="IRCCS INRCA">
-              <option>M.Mansi</option><option>C.Rossi</option><option>D.Danzi</option>
-            </optgroup>
           </select>
           <div class="error-msg" id="err-i-tecnico"></div>
         </div>
@@ -880,6 +835,7 @@
       <div style="display:flex;gap:10px">
         <button class="btn btn-ghost" onclick="exportMagazzino()">↓ Export CSV</button>
         <button class="btn btn-ghost" onclick="toggleReportMensile()">📊 Report Mensile</button>
+        <button class="btn btn-ghost" onclick="showForm('carico-iniziale')">↑ Carico Iniziale</button>
         <button class="btn btn-primary" onclick="showForm('carico')">+ Nuovo Carico</button>
       </div>
     </div>
@@ -924,6 +880,54 @@
       <div class="stat-card"><div class="stat-label">Codici in magazzino</div><div class="stat-value blue" id="stat-mag-tot">0</div></div>
       <div class="stat-card"><div class="stat-label">Codici esauriti</div><div class="stat-value" style="color:var(--danger)" id="stat-mag-zero">0</div></div>
       <div class="stat-card"><div class="stat-label">Codici in scorta minima</div><div class="stat-value warn" id="stat-mag-low">0</div></div>
+    </div>
+
+    <!-- FORM CARICO INIZIALE -->
+    <div class="form-card" id="form-carico-iniziale" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div style="font-family:var(--mono);font-size:14px;font-weight:600">Carico Iniziale da File Excel</div>
+        <button class="btn btn-ghost" onclick="hideForm('carico-iniziale')">✕ Chiudi</button>
+      </div>
+      <div class="form-grid two">
+        <div class="form-group">
+          <label>Ente <span class="req">*</span></label>
+          <select id="ci-ente" class="required-field">
+            <option value="">Seleziona ente...</option>
+            <option>ASST Brianza</option>
+            <option>ASST Lariana</option>
+            <option>ASST Lecco</option>
+            <option>IRCCS San Gerardo</option>
+            <option>ASST Sette Laghi</option>
+            <option>ASST Valcamonica</option>
+            <option>ASST Valle Olona</option>
+            <option>ASST Valtellina e Alto Lario</option>
+            <option>ATS Brianza</option>
+            <option>ATS Insubria</option>
+            <option>ATS Montagna</option>
+            <option>IRCCS INRCA</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Data giacenza iniziale <span class="req">*</span></label>
+          <input type="date" id="ci-data" class="required-field">
+        </div>
+        <div class="form-group full">
+          <label>File Excel <span class="req">*</span> <span class="opt">— colonne: DEPOSITO, CODICE TONER, QUANTITA'</span></label>
+          <input type="file" id="ci-file" accept=".xlsx,.xls,.csv" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);width:100%">
+        </div>
+      </div>
+      <div id="ci-preview" style="display:none;margin-top:12px">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:8px" id="ci-preview-label"></div>
+        <div class="table-wrap" style="max-height:200px;overflow-y:auto">
+          <table><thead><tr><th>Codice Toner</th><th>Quantità</th></tr></thead>
+          <tbody id="ci-preview-body"></tbody></table>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="hideForm('carico-iniziale')">Annulla</button>
+        <button class="btn btn-ghost" onclick="leggiFileCaricoIniziale()">👁 Anteprima</button>
+        <button class="btn btn-success" id="ci-btn-salva" style="display:none" onclick="salvaCaricoIniziale()">✓ Carica Giacenza Iniziale</button>
+      </div>
     </div>
 
     <!-- FORM CARICO -->
@@ -1406,6 +1410,89 @@ function updateDescCarico() {
   if (opt && opt.value) descEl.value = opt.value.split('||')[1] || '';
 }
 
+// CARICO INIZIALE DA FILE
+var caricoInizialeData = [];
+
+async function leggiFileCaricoIniziale() {
+  const ente = document.getElementById('ci-ente').value;
+  const data = document.getElementById('ci-data').value;
+  const file = document.getElementById('ci-file').files[0];
+
+  if (!ente || !data || !file) { toast('Compila tutti i campi e seleziona il file', 'error'); return; }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const workbook = XLSX.read(e.target.result, {type: 'binary'});
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
+
+      caricoInizialeData = [];
+      const tbody = document.getElementById('ci-preview-body');
+      tbody.innerHTML = '';
+
+      let count = 0;
+      rows.forEach((row, i) => {
+        if (i === 0) return; // salta intestazione
+        const codice = String(row[1] || '').trim();
+        const qty = parseInt(row[2]) || 0;
+        if (!codice) return;
+
+        caricoInizialeData.push({ codice, qty });
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="mono">${codice}</td><td class="mono">${qty}</td>`;
+        tbody.appendChild(tr);
+        count++;
+      });
+
+      document.getElementById('ci-preview-label').textContent = `${count} codici trovati (${caricoInizialeData.filter(r => r.qty > 0).length} con quantità > 0)`;
+      document.getElementById('ci-preview').style.display = 'block';
+      document.getElementById('ci-btn-salva').style.display = 'inline-flex';
+      toast(`File letto: ${count} codici trovati`);
+    } catch(err) {
+      toast('Errore nella lettura del file', 'error');
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+async function salvaCaricoIniziale() {
+  const ente = document.getElementById('ci-ente').value;
+  const data = document.getElementById('ci-data').value;
+
+  if (!caricoInizialeData.length) { toast('Nessun dato da caricare', 'error'); return; }
+
+  toast('Caricamento in corso...');
+
+  const records = caricoInizialeData.map(r => ({
+    ente,
+    codice_consumabile: r.codice,
+    desc_consumabile: '',
+    tipo: 'CARICO INIZIALE',
+    quantita: r.qty,
+    ddt: `GIACENZA INIZIALE ${data}`,
+    data,
+    note: 'Carico iniziale da file Excel'
+  }));
+
+  // Invia in batch da 50
+  let success = 0;
+  for (let i = 0; i < records.length; i += 50) {
+    const batch = records.slice(i, i + 50);
+    await fetch(`${SUPABASE_URL}/rest/v1/magazzino`, {
+      method: 'POST',
+      headers: {...SB_HEADERS, 'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
+      body: JSON.stringify(batch)
+    });
+    success += batch.length;
+  }
+
+  toast(`✓ ${success} codici caricati!`);
+  hideForm('carico-iniziale');
+  caricoInizialeData = [];
+  loadMagazzino(currentEnteMagazzino);
+}
+
 async function saveCarico() {
   const ente = document.getElementById('c-ente').value;
   const data = document.getElementById('c-data').value;
@@ -1518,6 +1605,7 @@ async function exportMagazzino() {
 // INIT
 loadEntiSedi();
 loadImac();
+updateTecnicoSelect('');
 setTimeout(() => popolaMenuToner(catalogoPiatto), 500);
 
 // Navigation
@@ -1550,9 +1638,10 @@ function hideForm(type) {
 function resetForm(type) {
   const form = document.getElementById(`form-${type}`);
   form.querySelectorAll('input').forEach(el => el.value = '');
-  form.querySelectorAll('select').forEach(el => { if (el.id !== 'i-tecnico') el.value = ''; });
+  form.querySelectorAll('select').forEach(el => { el.value = ''; });
   form.querySelectorAll('.error-msg').forEach(el => el.textContent = '');
   form.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+  if (type === 'imac') setTimeout(() => updateTecnicoSelect(currentEnteImac), 50);
 }
 
 // Validate
@@ -2214,14 +2303,17 @@ function selectEnte(type, ente, btn) {
 function showForm(type) {
   document.getElementById(`form-${type}`).style.display = 'block';
   document.getElementById(`form-${type}`).scrollIntoView({ behavior: 'smooth' });
-  if (type === 'imac' && currentEnteImac) {
-    setTimeout(() => {
-      const enteEl = document.getElementById('i-ente');
-      if (enteEl) {
-        const opt = Array.from(enteEl.options).find(o => o.text === currentEnteImac);
-        if (opt) { enteEl.value = opt.value; onEnteChange('imac'); }
-      }
-    }, 100);
+  if (type === 'imac') {
+    updateTecnicoSelect(currentEnteImac);
+    if (currentEnteImac) {
+      setTimeout(() => {
+        const enteEl = document.getElementById('i-ente');
+        if (enteEl) {
+          const opt = Array.from(enteEl.options).find(o => o.text === currentEnteImac);
+          if (opt) { enteEl.value = opt.value; onEnteChange('imac'); }
+        }
+      }, 100);
+    }
   }
 }
 
