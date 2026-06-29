@@ -501,13 +501,72 @@ async function loadValoriDistinti() {
   const valori = Object.entries(conteggio).sort((a, b) => b[1] - a[1]);
   document.getElementById('norm-info').textContent = `${valori.length} valori distinti trovati`;
 
-  cont.innerHTML = valori.map(([val, count]) => `
-    <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px">
-      <input type="checkbox" class="norm-check" value="${val.replace(/"/g, '&quot;')}">
-      <span style="flex:1;color:var(--text)">${val}</span>
-      <span style="font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--surface2);padding:1px 6px;border-radius:3px">${count}</span>
-    </label>
+  cont.innerHTML = valori.map(([val, count], idx) => `
+    <div style="border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:12px">
+        <span onclick="toggleEsempi('${idx}', '${val.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')" style="cursor:pointer;color:var(--text3);width:14px;display:inline-flex" id="arrow-${idx}">▶</span>
+        <label style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer">
+          <input type="checkbox" class="norm-check" value="${val.replace(/"/g, '&quot;')}">
+          <span style="flex:1;color:var(--text)">${val}</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--surface2);padding:1px 6px;border-radius:3px">${count}</span>
+        </label>
+      </div>
+      <div id="esempi-${idx}" style="display:none;padding:0 12px 8px 36px"></div>
+    </div>
   `).join('');
+}
+
+async function toggleEsempi(idx, val) {
+  const cont = document.getElementById(`esempi-${idx}`);
+  const arrow = document.getElementById(`arrow-${idx}`);
+  if (cont.style.display === 'block') {
+    cont.style.display = 'none';
+    arrow.textContent = '▶';
+    return;
+  }
+  arrow.textContent = '▼';
+  cont.style.display = 'block';
+  cont.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:4px">Caricamento...</div>';
+
+  const campo = document.getElementById('norm-campo').value;
+  const enteId = document.getElementById('norm-ente').value;
+  const statusFilter = document.getElementById('norm-status').value;
+
+  let url;
+  if (val === '(vuoto)') {
+    url = `asset?select=tag_asset,servizio_uo,stanza,building&${campo}=is.null&limit=5`;
+  } else {
+    url = `asset?select=tag_asset,servizio_uo,stanza,building&${campo}=eq.${encodeURIComponent(val)}&limit=5`;
+  }
+  if (enteId) url += `&ente_id=eq.${enteId}`;
+  if (statusFilter === 'attivi') url += `&status=eq.attivo`;
+
+  const esempi = await sbGet(url);
+  if (!esempi || esempi.length === 0) {
+    cont.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:4px">Nessun esempio</div>';
+    return;
+  }
+
+  cont.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:10px">
+      <thead><tr style="color:var(--text3)">
+        <th style="text-align:left;padding:3px 6px;font-family:var(--mono);font-weight:500">TAG</th>
+        <th style="text-align:left;padding:3px 6px;font-family:var(--mono);font-weight:500">PADIGLIONE</th>
+        <th style="text-align:left;padding:3px 6px;font-family:var(--mono);font-weight:500">REPARTO</th>
+        <th style="text-align:left;padding:3px 6px;font-family:var(--mono);font-weight:500">STANZA</th>
+      </tr></thead>
+      <tbody>
+        ${esempi.map(e => `
+          <tr style="color:var(--text2)">
+            <td style="padding:3px 6px;font-family:var(--mono)">${e.tag_asset || '—'}</td>
+            <td style="padding:3px 6px">${e.building || '—'}</td>
+            <td style="padding:3px 6px">${e.servizio_uo || '—'}</td>
+            <td style="padding:3px 6px">${e.stanza || '—'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
 }
 
 async function applicaNormalizzazione() {
