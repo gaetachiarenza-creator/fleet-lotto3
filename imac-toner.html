@@ -2324,13 +2324,16 @@ function showForm(type) {
   if (type === 'imac') {
     updateTecnicoSelect(currentEnteImac);
     if (currentEnteImac) {
-      setTimeout(() => {
+      const trySetEnte = (attempts) => {
         const enteEl = document.getElementById('i-ente');
-        if (enteEl) {
-          const opt = Array.from(enteEl.options).find(o => o.text === currentEnteImac);
+        if (enteEl && enteEl.options.length > 1) {
+          const opt = Array.from(enteEl.options).find(o => o.text.trim() === currentEnteImac.trim());
           if (opt) { enteEl.value = opt.value; onEnteChange('imac'); }
+        } else if (attempts > 0) {
+          setTimeout(() => trySetEnte(attempts - 1), 200);
         }
-      }, 100);
+      };
+      trySetEnte(10);
     }
   }
   if (type === 'toner') popolaMenuToner(catalogoPiatto);
