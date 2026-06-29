@@ -2297,9 +2297,24 @@ function selectEnte(type, ente, btn) {
     currentEnteImac = ente;
     updateTecnicoSelect(ente);
     loadImac(ente);
+    // Aggiorna anche l'ente nel form se è aperto
+    if (ente) {
+      const enteEl = document.getElementById('i-ente');
+      if (enteEl) {
+        const opt = Array.from(enteEl.options).find(o => o.text === ente);
+        if (opt) { enteEl.value = opt.value; onEnteChange('imac'); }
+      }
+    }
   } else {
     currentEnteToner = ente;
     loadToner(ente);
+    if (ente) {
+      const enteEl = document.getElementById('t-ente');
+      if (enteEl) {
+        const opt = Array.from(enteEl.options).find(o => o.text === ente);
+        if (opt) { enteEl.value = opt.value; }
+      }
+    }
   }
 }
 
