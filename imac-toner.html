@@ -1602,6 +1602,22 @@ async function exportMagazzino() {
   toast('Export completato!');
 }
 
+const tecniciPerEnte = {
+  'ASST Brianza': ['F.Arrighini','F.Naso','A.Francavilla','C.Fontana','C.Lanzaro','D.Nicotra','F.Punzi','M.Marziotti'],
+  'ASST Lariana': ['D.Di Sisto','M.Arnaboldi','A.Pantalone','A.Chiarello','L.Bertuletti','L.Vago','R.Gaffuri','G.Chiarenza'],
+  'ASST Lecco': ['F.Venturini','J.Machuca','F.Guccione','F.Noseda','G.De Pedrina','M.Anghileri','M.Bernasconi','S.Minola','A.Aguglia'],
+  'IRCCS San Gerardo': ['G.Pontillo','M.Custureri','E.Turati','G.Vit','L.Lacamera','L.DiGirolamo','M.Iannone','M.Cutolo','S.Cazzaniga'],
+  'ASST Sette Laghi': ['M.Maiorano','A.Mura','A.Leontino','A.Petrocelli','B.Corrente','C.Petri','E.Baratto','L.Binaghi','M.Bettagno','S.Gangemi'],
+  'ASST Valcamonica': ['M.Tedeschi','M.Polonioli','J.Fedrighini','L.Ducoli'],
+  'ASST Valle Olona': ['D.Bonomi','G.Lombardino','E.Pomaro','F.Ferrario','M.Cattaneo','P.Besana','S.Vejuka','S.Serra'],
+  'ASST Valtellina e Alto Lario': ['F.Tonola','K.Contreras','A.Orsingher','F.Depianto','K.Mauri','M.Patisso','A.Terzi'],
+  'ATS Brianza': ['M.Mansi','C.Rossi','D.Danzi'],
+  'ATS Insubria': ['I.Dervishi','D.Zambon','C.Bignotti','E.Rossi','G.Patano'],
+  'ATS Montagna': ['M.Argenta','M.Gasparini'],
+  'IRCCS INRCA': ['M.Mansi','C.Rossi','D.Danzi'],
+};
+
+
 // CATALOGO TONER
 const catalogoToner = {
   'ST KY FS-4200DN': [
@@ -2264,20 +2280,6 @@ function updateCodiciToner(modello) {
 }
 
 // TECNICI PER ENTE
-const tecniciPerEnte = {
-  'ASST Brianza': ['F.Arrighini','F.Naso','A.Francavilla','C.Fontana','C.Lanzaro','D.Nicotra','F.Punzi','M.Marziotti'],
-  'ASST Lariana': ['D.Di Sisto','M.Arnaboldi','A.Pantalone','A.Chiarello','L.Bertuletti','L.Vago','R.Gaffuri','G.Chiarenza'],
-  'ASST Lecco': ['F.Venturini','J.Machuca','F.Guccione','F.Noseda','G.De Pedrina','M.Anghileri','M.Bernasconi','S.Minola','A.Aguglia'],
-  'IRCCS San Gerardo': ['G.Pontillo','M.Custureri','E.Turati','G.Vit','L.Lacamera','L.DiGirolamo','M.Iannone','M.Cutolo','S.Cazzaniga'],
-  'ASST Sette Laghi': ['M.Maiorano','A.Mura','A.Leontino','A.Petrocelli','B.Corrente','C.Petri','E.Baratto','L.Binaghi','M.Bettagno','S.Gangemi'],
-  'ASST Valcamonica': ['M.Tedeschi','M.Polonioli','J.Fedrighini','L.Ducoli'],
-  'ASST Valle Olona': ['D.Bonomi','G.Lombardino','E.Pomaro','F.Ferrario','M.Cattaneo','P.Besana','S.Vejuka','S.Serra'],
-  'ASST Valtellina e Alto Lario': ['F.Tonola','K.Contreras','A.Orsingher','F.Depianto','K.Mauri','M.Patisso','A.Terzi'],
-  'ATS Brianza': ['M.Mansi','C.Rossi','D.Danzi'],
-  'ATS Insubria': ['I.Dervishi','D.Zambon','C.Bignotti','E.Rossi','G.Patano'],
-  'ATS Montagna': ['M.Argenta','M.Gasparini'],
-  'IRCCS INRCA': ['M.Mansi','C.Rossi','D.Danzi'],
-};
 
 var currentEnteImac = '';
 var currentEnteToner = '';
