@@ -471,6 +471,7 @@ async function loadValoriDistinti() {
 
   // ID univoco per questa chiamata — se ne parte un'altra, questa viene annullata
   const myId = ++normLoadingId;
+  console.log(`[Normalizza] Campo: ${campo}, EnteID: "${enteId}" (${enteId ? 'filtrato' : 'TUTTI'})`);
 
   // Carica tutti gli asset con quel campo (ordinati per id per paginazione stabile)
   let allAssets = [];
