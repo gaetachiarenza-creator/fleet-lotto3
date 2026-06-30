@@ -330,9 +330,31 @@
   <div class="user-info">
     <span id="user-nome"></span>
     <span class="user-badge" id="user-ente"></span>
+    <button class="logout-btn" onclick="openCambioPassword()">🔑 Password</button>
     <button class="logout-btn" onclick="doLogout()">Esci</button>
   </div>
 </header>
+
+<!-- MODALE CAMBIO PASSWORD -->
+<div id="pwd-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:90%;max-width:380px;padding:28px">
+    <div style="font-family:var(--mono);font-size:15px;font-weight:600;margin-bottom:6px">Cambia Password</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:20px">Inserisci la nuova password (minimo 6 caratteri)</div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:12px;color:var(--text2);margin-bottom:6px">Nuova password</label>
+      <input type="password" id="pwd-new" placeholder="••••••••" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;outline:none">
+    </div>
+    <div style="margin-bottom:18px">
+      <label style="display:block;font-size:12px;color:var(--text2);margin-bottom:6px">Conferma password</label>
+      <input type="password" id="pwd-confirm" placeholder="••••••••" onkeydown="if(event.key==='Enter')cambiaPassword()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;outline:none">
+    </div>
+    <div id="pwd-msg" style="font-size:12px;text-align:center;margin-bottom:14px;min-height:16px"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeCambioPassword()">Annulla</button>
+      <button class="btn btn-primary" style="flex:1" onclick="cambiaPassword()">Conferma</button>
+    </div>
+  </div>
+</div>
 
 <main>
 
@@ -1860,6 +1882,41 @@ async function doLogout() {
   currentProfile = null;
   userToken = null;
   location.reload();
+}
+
+// CAMBIO PASSWORD
+function openCambioPassword() {
+  document.getElementById('pwd-overlay').style.display = 'flex';
+  document.getElementById('pwd-new').value = '';
+  document.getElementById('pwd-confirm').value = '';
+  document.getElementById('pwd-msg').textContent = '';
+}
+
+function closeCambioPassword() {
+  document.getElementById('pwd-overlay').style.display = 'none';
+}
+
+async function cambiaPassword() {
+  const nuova = document.getElementById('pwd-new').value;
+  const conferma = document.getElementById('pwd-confirm').value;
+  const msg = document.getElementById('pwd-msg');
+
+  if (nuova.length < 6) { msg.style.color = 'var(--danger)'; msg.textContent = 'La password deve avere almeno 6 caratteri'; return; }
+  if (nuova !== conferma) { msg.style.color = 'var(--danger)'; msg.textContent = 'Le password non coincidono'; return; }
+
+  msg.style.color = 'var(--text3)';
+  msg.textContent = 'Aggiornamento in corso...';
+
+  const { error } = await sbClient.auth.updateUser({ password: nuova });
+  if (error) {
+    msg.style.color = 'var(--danger)';
+    msg.textContent = 'Errore: ' + error.message;
+    return;
+  }
+
+  msg.style.color = 'var(--accent2)';
+  msg.textContent = '✓ Password aggiornata con successo!';
+  setTimeout(() => closeCambioPassword(), 1500);
 }
 
 // Controlla sessione esistente all'avvio
