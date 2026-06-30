@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestione Toner — Lotto 3</title>
+<style>
+  :root {
+    --bg:#0f1117; --surface:#181c27; --surface2:#1e2333; --border:#2a2f42;
+    --accent:#3b82f6; --accent2:#10b981; --warn:#f59e0b; --danger:#ef4444;
+    --text:#e2e8f0; --text2:#94a3b8; --text3:#64748b;
+    --mono:'IBM Plex Mono',ui-monospace,monospace; --sans:'IBM Plex Sans',system-ui,sans-serif;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; }
+
+  /* LOGIN */
+  #login-screen {
+    position:fixed; inset:0; background:var(--bg); z-index:9999;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .login-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:40px; width:90%; max-width:380px;
+  }
+  .login-logo { font-family:var(--mono); font-size:18px; font-weight:600; color:var(--accent); text-align:center; margin-bottom:8px; }
+  .login-sub { text-align:center; color:var(--text3); font-size:13px; margin-bottom:28px; }
+  .login-field { margin-bottom:16px; }
+  .login-field label { display:block; font-size:12px; color:var(--text2); margin-bottom:6px; }
+  .login-field input {
+    width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+    padding:10px 14px; color:var(--text); font-family:var(--sans); font-size:14px; outline:none;
+  }
+  .login-field input:focus { border-color:var(--accent); }
+  .login-btn {
+    width:100%; background:var(--accent); color:white; border:none; border-radius:8px;
+    padding:11px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;
+  }
+  .login-btn:hover { background:#2563eb; }
+  .login-error { color:var(--danger); font-size:12px; text-align:center; margin-top:12px; min-height:16px; }
+
+  header {
+    background:var(--surface); border-bottom:1px solid var(--border); padding:0 24px;
+    display:flex; align-items:center; justify-content:space-between; height:56px;
+    position:sticky; top:0; z-index:100;
+  }
+  .logo { font-family:var(--mono); font-size:13px; font-weight:600; color:var(--accent); letter-spacing:0.05em; }
+  .logo span { color:var(--text3); }
+  nav { display:flex; gap:8px; }
+  .nav-btn { background:none; border:none; color:var(--text2); padding:8px 16px; border-radius:8px; font-family:var(--sans); font-size:13px; cursor:pointer; }
+  .nav-btn.active { background:var(--surface2); color:var(--accent); }
+  .user-info { display:flex; align-items:center; gap:12px; font-size:12px; color:var(--text2); }
+  .user-badge { font-family:var(--mono); font-size:11px; background:var(--surface2); padding:3px 8px; border-radius:4px; color:var(--accent2); }
+  .logout-btn { background:none; border:1px solid var(--border); color:var(--text2); padding:5px 12px; border-radius:6px; font-size:12px; cursor:pointer; }
+  .logout-btn:hover { border-color:var(--danger); color:var(--danger); }
+
+  main { padding:24px; max-width:1200px; margin:0 auto; }
+  .page { display:none; }
+  .page.active { display:block; }
+
+  .loading-app { text-align:center; padding:60px; color:var(--text3); font-family:var(--mono); }
+
+  .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .section-title { font-size:20px; font-weight:600; }
+  .section-sub { font-size:13px; color:var(--text3); margin-top:2px; }
+
+  .btn { padding:8px 16px; border-radius:8px; border:none; font-family:var(--sans); font-size:13px; font-weight:500; cursor:pointer; }
+  .btn-primary { background:var(--accent); color:white; }
+  .btn-ghost { background:var(--surface2); color:var(--text2); border:1px solid var(--border); }
+  .btn-success { background:var(--accent2); color:white; }
+
+  .placeholder { text-align:center; padding:80px 20px; color:var(--text3); }
+  .placeholder-icon { font-size:48px; margin-bottom:16px; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">GESTIONE TONER</div>
+    <div class="login-sub">Fleet Lotto 3 — Accedi per continuare</div>
+    <div class="login-field">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="nome@ente.it" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Accedi</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP (nascosta finché non si fa login) -->
+<div id="app" style="display:none">
+  <header>
+    <div class="logo">TONER <span>— LOTTO 3</span></div>
+    <nav>
+      <button class="nav-btn active" onclick="showPage('toner', this)">🖨️ Toner</button>
+      <button class="nav-btn" onclick="showPage('magazzino', this)">📦 Magazzino</button>
+    </nav>
+    <div class="user-info">
+      <span id="user-nome"></span>
+      <span class="user-badge" id="user-ente"></span>
+      <button class="logout-btn" onclick="doLogout()">Esci</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="page-toner" class="page active">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Rilevazioni Toner</div>
+          <div class="section-sub" id="toner-sub">Caricamento...</div>
+        </div>
+      </div>
+      <div class="placeholder">
+        <div class="placeholder-icon">🖨️</div>
+        <div>Sezione toner in costruzione per la versione con login</div>
+      </div>
+    </div>
+
+    <div id="page-magazzino" class="page">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Magazzino</div>
+          <div class="section-sub" id="mag-sub">Caricamento...</div>
+        </div>
+      </div>
+      <div class="placeholder">
+        <div class="placeholder-icon">📦</div>
+        <div>Sezione magazzino in costruzione per la versione con login</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://idbafibnmlesedejdvin.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkYmFmaWJubWxlc2VkZWpkdmluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3OTc1MzgsImV4cCI6MjA5NjM3MzUzOH0.hoVRc-ycsVP5K1gJFYIrU864CKn-sEpLBPrTWIpkBuE';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentProfile = null;
+
+// LOGIN
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+
+  if (!email || !password) { errEl.textContent = 'Inserisci email e password'; return; }
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) {
+    errEl.textContent = 'Email o password non corretti';
+    return;
+  }
+
+  await loadProfile();
+}
+
+async function loadProfile() {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { showLogin(); return; }
+
+  // Carica il profilo
+  const { data: profili, error } = await sb.from('profili').select('*').eq('id', user.id);
+  if (error || !profili || profili.length === 0) {
+    document.getElementById('login-error').textContent = 'Profilo non trovato. Contatta l\'amministratore.';
+    await sb.auth.signOut();
+    showLogin();
+    return;
+  }
+
+  currentProfile = profili[0];
+  showApp();
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  document.getElementById('user-nome').textContent = currentProfile.nome || currentProfile.email;
+  const enteLabel = currentProfile.ruolo === 'admin' ? 'ADMIN — Tutti gli enti' : currentProfile.ente;
+  document.getElementById('user-ente').textContent = enteLabel;
+
+  const sub = currentProfile.ruolo === 'admin' ? 'Tutti gli enti' : currentProfile.ente;
+  document.getElementById('toner-sub').textContent = sub;
+  document.getElementById('mag-sub').textContent = sub;
+}
+
+function showLogin() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  currentProfile = null;
+  location.reload();
+}
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+// Controlla se c'è già una sessione attiva all'avvio
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await loadProfile();
+  } else {
+    showLogin();
+  }
+})();
+</script>
+</body>
+</html>
